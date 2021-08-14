@@ -18,10 +18,10 @@ w[counter] = 0;
 /**
  * Emit custom data to custom action
  * @param {string} action - Name of action
- * @param {*} state - Any data that you want to emit
+ * @param {...any} args - Any data that you want to emit
  * @returns {null}
  */
-export function emitState(action, state) {
+export function emitState(action, ...args) {
     if (!w[register][action]) {
         return;
     }
@@ -34,7 +34,7 @@ export function emitState(action, state) {
 
             if (typeof callback === 'function') {
                 try {
-                    callback(state);
+                    callback(...args);
                 } catch (error) {
                     console.log(error); // eslint-disable-line
                 }

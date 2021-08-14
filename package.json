@@ -1,6 +1,6 @@
 {
   "name": "react-redist",
-  "version": "1.0.0",
+  "version": "1.0.10",
   "description": "Emit and Listen on data change for React/Preact component",
   "main": "index.js",
   "scripts": {
