@@ -3,7 +3,7 @@ A lightweight function to distribute the data from a component to another compon
 # Installation
 `npm install react-redist --save`
 # Example
-```
+```tsx
 import React, { Component } from 'react';
 import { autoEmitState, emitState, listenState, offListenState } from 'react-redist';
 import { ANOTHER_ACTION } from './AnotherComponent';
@@ -47,7 +47,7 @@ export default Example;
 **Does it work with a function component?**
 Ohh, Yes!
 
-```
+```tsx
 import React, { useEffect } from 'react';
 import { emitState, listenState, offListenState } from 'react-redist';
 import { ANOTHER_ACTION } from './AnotherComponent';
@@ -84,13 +84,13 @@ export default function MyCustomComponent(props) {
 ```
 # Prevent conflict with another app
 Please using the webpack.DefinePlugin plugin to rename the global register variable
-```
+```tsx
 new webpack.DefinePlugin({
     __redist_register__: '"__redist_my_custom_app__"',
 })
 ```
 Example code
-```
+```tsx
 const webpack = require('webpack');
 
 module.exports = (env) => {
