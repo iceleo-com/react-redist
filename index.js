@@ -9,7 +9,7 @@ try {
 }
 /* eslint-enable */
 
-const counter = `${register}counter`;
+let counter = `${register}counter`;
 
 const w = window;
 w[register] = {};
@@ -116,3 +116,139 @@ export function offListenState(action, id) {
         delete w[register][action][id];
     }
 }
+
+class ReactRedist {
+    register = '__redist_default_register__';
+    counter = '__redist_default_register__counter';
+    localStorage = {};
+    isGlobal = true;
+
+    constructor(registerKey, isGlobal = true) {
+        if (typeof registerKey === 'string'
+            && registerKey !== ''
+        ) {
+            this.register = registerKey;
+            this.counter = `${registerKey}counter`;
+        }
+
+        if (typeof isGlobal === 'boolean') {
+            this.isGlobal = isGlobal;
+        }
+
+        this.localStorage = {};
+        this.init();
+    }
+
+    init = () => {
+        const storage = this.getStorage();
+
+        if (typeof storage[this.register] === 'undefined') {
+            storage[this.register] = {};
+        }
+
+        if (typeof storage[this.counter] === 'undefined') {
+            storage[this.counter] = 0;
+        }
+    }
+
+    emitState = (action, ...args) => {
+        const storage = this.getStorage();
+
+        if (!storage[this.register][action]) {
+            return;
+        }
+
+        const invalidListeners = [];
+
+        for (const id in storage[this.register][action]) {
+            if (Object.hasOwnProperty.call(storage[this.register][action], id)) {
+                const callback = storage[this.register][action][id];
+
+                if (typeof callback === 'function') {
+                    try {
+                        callback(...args);
+                    } catch (error) {
+                        console.log(error); // eslint-disable-line
+                    }
+                } else {
+                    invalidListeners.push(id);
+                }
+            }
+        }
+
+        if (invalidListeners.length) {
+            invalidListeners.forEach((id) => {
+                delete storage[this.register][action][id];
+            });
+        }
+    }
+
+    autoEmitState = (instance, action) => {
+        if (!instance
+            || typeof instance.setState !== 'function'
+            || typeof action !== 'string'
+            || !action
+        ) {
+            return false;
+        }
+
+        // backup the current setState function
+        instance.setStateBak = instance.setState;
+
+        // create a proxy to listen the setState
+        instance.setState = (state, cb) => {
+            instance.setStateBak(state, cb);
+            this.emitState(action, state);
+        };
+
+        return true;
+    }
+
+    listenState = (action, callback) => {
+        const storage = this.getStorage();
+
+        if (typeof callback !== 'function'
+            || typeof action !== 'string'
+            || !action
+        ) {
+            return false;
+        }
+
+        const id = ++storage[this.counter];
+
+        if (!storage[this.register][action]) {
+            storage[this.register][action] = {};
+        }
+
+        storage[this.register][action][id] = callback;
+
+        return id;
+    }
+
+    listenState = (action, callback) => {
+        const storage = this.getStorage();
+
+        if (typeof callback !== 'function'
+            || typeof action !== 'string'
+            || !action
+        ) {
+            return false;
+        }
+
+        const id = ++storage[this.counter];
+
+        if (!storage[this.register][action]) {
+            storage[this.register][action] = {};
+        }
+
+        storage[this.register][action][id] = callback;
+
+        return id;
+    }
+
+    getStorage = () => {
+        return (this.isGlobal ? window : this.localStorage);
+    }
+}
+
+export default ReactRedist;
