@@ -123,7 +123,7 @@ class ReactRedist {
     localStorage = {};
     isGlobal = true;
 
-    constructor(registerKey, isGlobal = true) {
+    constructor(registerKey = '__redist_default_register__', isGlobal = true) {
         if (typeof registerKey === 'string'
             && registerKey !== ''
         ) {
@@ -149,6 +149,22 @@ class ReactRedist {
         if (typeof storage[this.counter] === 'undefined') {
             storage[this.counter] = 0;
         }
+    }
+
+    dispatch = (action, ...args) => {
+        return this.emitState(action, ...args);
+    }
+
+    on = (action, callback) => {
+        return this.listenState(action, callback);
+    }
+
+    off = (action, id) => {
+        return this.offListenState(action, id);
+    }
+
+    connect = (instance, action) => {
+        return this.autoEmitState(instance, action);
     }
 
     emitState = (action, ...args) => {
@@ -225,25 +241,12 @@ class ReactRedist {
         return id;
     }
 
-    listenState = (action, callback) => {
+    offListenState = (action, id) => {
         const storage = this.getStorage();
 
-        if (typeof callback !== 'function'
-            || typeof action !== 'string'
-            || !action
-        ) {
-            return false;
+        if (storage[register][action] && storage[register][action][id]) {
+            delete storage[register][action][id];
         }
-
-        const id = ++storage[this.counter];
-
-        if (!storage[this.register][action]) {
-            storage[this.register][action] = {};
-        }
-
-        storage[this.register][action][id] = callback;
-
-        return id;
     }
 
     getStorage = () => {
