@@ -141,9 +141,10 @@ class ReactRedist {
 
     init = () => {
         const storage = this.getStorage();
+        const selfRegister = this.register;
 
-        if (typeof storage[this.register] === 'undefined') {
-            storage[this.register] = {};
+        if (typeof storage[selfRegister] === 'undefined') {
+            storage[selfRegister] = {};
         }
 
         if (typeof storage[this.counter] === 'undefined') {
@@ -151,34 +152,21 @@ class ReactRedist {
         }
     }
 
-    dispatch = (action, ...args) => {
-        return this.emitState(action, ...args);
-    }
-
-    on = (action, callback) => {
-        return this.listenState(action, callback);
-    }
-
-    off = (action, id) => {
-        return this.offListenState(action, id);
-    }
-
-    connect = (instance, action) => {
-        return this.autoEmitState(instance, action);
-    }
-
     emitState = (action, ...args) => {
         const storage = this.getStorage();
+        const selfRegister = this.register;
 
-        if (!storage[this.register][action]) {
+        if (!storage[selfRegister]
+            || !storage[selfRegister][action]
+        ) {
             return;
         }
 
         const invalidListeners = [];
 
-        for (const id in storage[this.register][action]) {
-            if (Object.hasOwnProperty.call(storage[this.register][action], id)) {
-                const callback = storage[this.register][action][id];
+        for (const id in storage[selfRegister][action]) {
+            if (Object.hasOwnProperty.call(storage[selfRegister][action], id)) {
+                const callback = storage[selfRegister][action][id];
 
                 if (typeof callback === 'function') {
                     try {
@@ -194,7 +182,7 @@ class ReactRedist {
 
         if (invalidListeners.length) {
             invalidListeners.forEach((id) => {
-                delete storage[this.register][action][id];
+                delete storage[selfRegister][action][id];
             });
         }
     }
@@ -221,8 +209,6 @@ class ReactRedist {
     }
 
     listenState = (action, callback) => {
-        const storage = this.getStorage();
-
         if (typeof callback !== 'function'
             || typeof action !== 'string'
             || !action
@@ -230,28 +216,43 @@ class ReactRedist {
             return false;
         }
 
+        const storage = this.getStorage();
+        const selfRegister = this.register;
+
         const id = ++storage[this.counter];
 
-        if (!storage[this.register][action]) {
-            storage[this.register][action] = {};
+        if (!storage[selfRegister][action]) {
+            storage[selfRegister][action] = {};
         }
 
-        storage[this.register][action][id] = callback;
+        storage[selfRegister][action][id] = callback;
 
         return id;
     }
 
     offListenState = (action, id) => {
         const storage = this.getStorage();
+        const selfRegister = this.register;
 
-        if (storage[register][action] && storage[register][action][id]) {
-            delete storage[register][action][id];
+        if (storage[selfRegister]
+            && storage[selfRegister][action]
+            && storage[selfRegister][action][id]
+        ) {
+            delete storage[selfRegister][action][id];
         }
     }
 
     getStorage = () => {
         return (this.isGlobal ? window : this.localStorage);
     }
+
+    dispatch = emitState;
+
+    on = listenState;
+
+    off = offListenState;
+
+    connect = autoEmitState;
 }
 
 export default ReactRedist;
