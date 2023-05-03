@@ -136,6 +136,7 @@ class ReactRedist {
         }
 
         this.localStorage = {};
+
         this.init();
     }
 
@@ -246,13 +247,22 @@ class ReactRedist {
         return (this.isGlobal ? window : this.localStorage);
     }
 
-    dispatch = emitState;
+    // alias
+    dispatch = (action, ...args) => {
+        return this.emitState(action, ...args);
+    }
 
-    on = listenState;
+    on = (action, callback) => {
+        return this.listenState(action, callback);
+    }
 
-    off = offListenState;
+    off = (action, id) => {
+        return this.offListenState(action, id);
+    }
 
-    connect = autoEmitState;
+    connect = (instance, action) => {
+        this.autoEmitState(instance, action);
+    }
 }
 
 export default ReactRedist;
